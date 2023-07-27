@@ -22,3 +22,11 @@ docker run --rm --name vivado_container -p 45901:5901 -p 46901:6901  --mount typ
 /home/user/Xilinx/Vivado/*/settings64.sh
 /home/user/Xilinx/Vivado/*/bin/vivado
 ```
+
+## Screenshots
+### Sample design with ZYNQ Processing System IP
+![telegram-cloud-photo-size-2-5339203163284164374-y](https://github.com/ValentiWorkLearning/vivado-on-silicon-mac_with_vnc/assets/25596072/87c143ea-fddd-4f9a-b6a7-7a1b44909331)
+
+### Implemented design with the generated bitstream
+![telegram-cloud-photo-size-2-5339203163284164394-y](https://github.com/ValentiWorkLearning/vivado-on-silicon-mac_with_vnc/assets/25596072/002345ab-39d8-46da-af2b-52e82f00c319)
+
