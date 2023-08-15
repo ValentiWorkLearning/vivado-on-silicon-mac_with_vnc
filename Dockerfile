@@ -16,6 +16,47 @@ python3-pip python3-dev build-essential git gcc-multilib g++ \
 ocl-icd-opencl-dev libjpeg62-dev libc6-dev-i386 graphviz make \
 unzip libtinfo5 xvfb libncursesw5 locales libswt-gtk-4-jni
 
+
+# buildroot dependencies
+RUN apt-get install -y git build-essential fakeroot libncurses5-dev libssl-dev ccache
+RUN apt-get install -y dfu-util u-boot-tools device-tree-compiler libssl1.0-dev mtools
+RUN apt-get install -y bc python cpio zip unzip rsync file wget
+
+
+RUN apt-get install -y \
+    build-essential \
+    bash \
+    bc \
+    binutils \
+    build-essential \
+    bzip2 \
+    cpio \
+    g++ \
+    gcc \
+    git \
+    gzip \
+    locales \
+    libncurses5-dev \
+    libdevmapper-dev \
+    libsystemd-dev \
+    make \
+    mercurial \
+    whois \
+    patch \
+    perl \
+    python3 \
+    rsync \
+    sed \
+    tar \
+    vim \ 
+    unzip \
+    wget \
+    bison \
+    flex \
+    libssl-dev \
+    libfdt-dev \
+    file
+
 # create user "user" with password "pass"
 RUN useradd --create-home --shell /bin/bash --user-group --groups adm,sudo user
 RUN sh -c 'echo "user:pass" | chpasswd'
