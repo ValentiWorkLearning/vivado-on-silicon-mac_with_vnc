@@ -57,6 +57,33 @@ RUN apt-get install -y \
     libfdt-dev \
     file
 
+
+# Litex framework dependencies
+RUN mkdir -p /home/litex_setup
+WORKDIR /home/litex_setup
+RUN apt install -y libevent-dev libjson-c-dev verilator zlib1g-dev 
+RUN locale-gen en_US.utf8
+RUN wget https://github.com/stnolting/riscv-gcc-prebuilt/releases/download/rv32i-4.0.0/riscv32-unknown-elf.gcc-12.1.0.tar.gz
+RUN mkdir /opt/riscv
+RUN tar -xzf riscv32-unknown-elf.gcc-12.1.0.tar.gz -C /opt/riscv/
+ENV PATH="$PATH:/opt/riscv/bin"
+
+RUN echo 'alias python=python3' > ~/.bashrc
+
+RUN wget https://bootstrap.pypa.io/pip/3.6/get-pip.py
+RUN python3 get-pip.py
+RUN git clone https://github.com/stnolting/neorv32.git
+
+## Litex installation
+RUN wget https://raw.githubusercontent.com/enjoy-digital/litex/master/litex_setup.py
+RUN chmod +x litex_setup.py
+RUN ./litex_setup.py --init --install --user root --config=full
+RUN ./litex_setup.py --update
+RUN pip3 install meson ninja
+
+
+ENV PATH="$PATH:/root/.local/bin"
+
 # create user "user" with password "pass"
 RUN useradd --create-home --shell /bin/bash --user-group --groups adm,sudo user
 RUN sh -c 'echo "user:pass" | chpasswd'
@@ -72,3 +99,4 @@ RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
+WORKDIR /dockerstartup
