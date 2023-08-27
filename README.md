@@ -70,6 +70,12 @@ host.docker.internal
 ```
 TODO: describe the flashing flow in detail
 
+## Zephyr simple test
+1)
+```sh
+source /home/zephyr_setup/zephyr/zephyr-env.sh 
+cmake -DBOARD=qemu_riscv32 $ZEPHYR_BASE/samples/hello_world
+```
 
 ## Screenshots
 ### Sample design with ZYNQ Processing System IP

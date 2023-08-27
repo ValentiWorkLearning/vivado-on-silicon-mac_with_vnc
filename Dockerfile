@@ -1,26 +1,28 @@
 # Container for running Vivado on M1/M2 macs
 # though it should work equally on Intel macs
-FROM --platform=linux/amd64 accetto/ubuntu-vnc-xfce
-RUN apt update && apt upgrade -y
+FROM --platform=linux/amd64 accetto/ubuntu-vnc-xfce-firefox-g3
+
+USER 0
+RUN apt-get update && apt-get upgrade -y
 
 # install gui
-RUN apt install -y --no-install-recommends --allow-unauthenticated \
+RUN apt-get install -y --no-install-recommends --allow-unauthenticated \
 dbus dbus-x11 x11-utils xorg alsa-utils mesa-utils net-tools \
 libgl1-mesa-dri gtk2-engines lxappearance fonts-droid-fallback sudo firefox \
 ubuntu-gnome-default-settings ca-certificates curl gnupg lxde arc-theme \
 gtk2-engines-murrine gtk2-engines-pixbuf gnome-themes-standard nano xterm
 
+
 # dependencies for Vivado
-RUN apt install -y --no-install-recommends --allow-unauthenticated \
+RUN apt-get install -y --no-install-recommends --allow-unauthenticated \
 python3-pip python3-dev build-essential git gcc-multilib g++ \
 ocl-icd-opencl-dev libjpeg62-dev libc6-dev-i386 graphviz make \
 unzip libtinfo5 xvfb libncursesw5 locales libswt-gtk-4-jni
 
-
 # buildroot dependencies
 RUN apt-get install -y git build-essential fakeroot libncurses5-dev libssl-dev ccache
-RUN apt-get install -y dfu-util u-boot-tools device-tree-compiler libssl1.0-dev mtools
-RUN apt-get install -y bc python cpio zip unzip rsync file wget
+RUN apt-get install -y dfu-util u-boot-tools device-tree-compiler mtools
+RUN apt-get install -y bc cpio zip unzip rsync file wget
 
 
 RUN apt-get install -y \
@@ -70,7 +72,7 @@ ENV PATH="$PATH:/opt/riscv/bin"
 
 RUN echo 'alias python=python3' > ~/.bashrc
 
-RUN wget https://bootstrap.pypa.io/pip/3.6/get-pip.py
+RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3 get-pip.py
 RUN git clone https://github.com/stnolting/neorv32.git
 
@@ -81,6 +83,34 @@ RUN ./litex_setup.py --init --install --user root --config=full
 RUN ./litex_setup.py --update
 RUN pip3 install meson ninja
 
+
+## Zephyr installation
+
+RUN mkdir -p /home/zephyr_setup
+WORKDIR /home/zephyr_setup
+RUN git clone https://github.com/zephyrproject-rtos/zephyr
+WORKDIR /home/zephyr_setup/zephyr
+RUN pip3 install --user -r scripts/requirements.txt
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get install -y  --no-install-recommends git cmake ninja-build gperf \
+  ccache dfu-util device-tree-compiler wget \
+  python3-dev python3-pip python3-setuptools python3-tk python3-wheel xz-utils file \
+  make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1
+RUN mkdir -p /home/zephyr_setup/cmake_artifacts
+WORKDIR /home/zephyr_setup/cmake_artifacts
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.21.1/cmake-3.21.1-Linux-x86_64.sh
+RUN chmod +x cmake-3.21.1-Linux-x86_64.sh
+RUN ./cmake-3.21.1-Linux-x86_64.sh --skip-license --prefix=/usr/local
+RUN hash -r
+
+
+WORKDIR /usr/local
+RUN wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.1/zephyr-sdk-0.16.1_linux-x86_64.tar.xz
+RUN wget -O - https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.1/sha256.sum | shasum --check --ignore-missing
+RUN tar xvf zephyr-sdk-0.16.1_linux-x86_64.tar.xz
+WORKDIR /usr/local/zephyr-sdk-0.16.1
+RUN ./setup.sh -c
 
 ENV PATH="$PATH:/root/.local/bin"
 
@@ -99,4 +129,5 @@ RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
-WORKDIR /dockerstartup
+
+WORKDIR /home/user
