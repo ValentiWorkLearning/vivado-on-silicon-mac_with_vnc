@@ -7,40 +7,51 @@ https://github.com/ichi4096/vivado-on-silicon-mac
 ## Container first launch and Vivado installation:
 1) Download Xilinx official WebVersion Linux installer. Copy it to the root of the repo.
 
-2) Build the container and launch it with the specified ports
+2) Build the container
 
 ```sh
 docker build -t me_vivado_apple .
+```
 
+3) Launch the container with the mounted path to /home user
+```sh
 docker run --rm --name vivado_container -p 45901:5901 -p 46901:6901  \
 --mount type=bind,source="/Users/$USER/Downloads/vivado-on-silicon-mac-main",target="/home/user" \
 docker.io/library/me_vivado_apple
 ```
 
-3) In the separate console session connect to the running container. For that execute
+3.1) The container can be optionally launched with the mounted directory to external project sources
+```sh
+docker run --rm --name vivado_container -p 45901:5901 -p 46901:6901  \
+--mount type=bind,source="/Users/$USER/Downloads/vivado-on-silicon-mac-main",target="/home/user" \
+--mount type=bind,source="/Users/$USER/Documents/Development/pluto_build",target="/home/user/pluto" \
+docker.io/library/me_vivado_apple
+```
+
+4) In the separate console session connect to the running container. For that execute
 ```docker ps```
 You'll see the running **CONTAINER ID**. Connect to the docker container:
 ```docker exec -it id_of_the_container /bin/bash```
 
-4) Extract installer to **/home/user/installer**
+5) Extract installer to **/home/user/installer**
 
 ```sh
 /home/user/Xilinx_Unified_2023.1_0507_1903_Lin64.bin --target /home/user/installer --noexec
 ```
 
-4) If the custom configuration is required - generate config. By default the install_config.txt can be used.
+6) If the custom configuration is required - generate config. By default the install_config.txt can be used.
 
 ```sh
 /home/user/installer/xsetup -b ConfigGen
 ```
 
-5) Generate your auth token. You'll be promted to enter you e-mail and password for AMD account.
+7) Generate your auth token. You'll be promted to enter you e-mail and password for AMD account.
 
 ```sh
 /home/user/installer/xsetup  -b AuthTokenGen
 ```
 
-6) Start the installation
+8) Start the installation
 
 ```sh
 /home/user/installer/xsetup --agree XilinxEULA,3rdPartyEULA -b Install -c /home/user/install_config.txt

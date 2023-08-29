@@ -56,7 +56,6 @@ RUN apt-get install -y \
     bison \
     flex \
     libssl-dev \
-    libfdt-dev \
     file
 
 
