@@ -67,7 +67,7 @@ You'll see the running **CONTAINER ID**. Connect to the docker container:
 ## Litex example build for EBAZ4205 board with X5 crystal for PL soldered
 ```sh
 export LITEX_ENV_VIVADO=/home/user/Xilinx/Vivado/2023.1/
-python3 -m litex_boards.targets.ebaz4205 --build --output-dir=/home/user/litex_bulild
+python3 -m litex_boards.targets.ebaz4205 --build --output-dir=/home/user/litex_bulild_from_template
 ```
 
 ## Programmer setup:
@@ -82,11 +82,54 @@ host.docker.internal
 TODO: describe the flashing flow in detail
 
 ## Zephyr simple test
-1)
 ```sh
 source /home/zephyr_setup/zephyr/zephyr-env.sh 
 cmake -DBOARD=qemu_riscv32 $ZEPHYR_BASE/samples/hello_world
 ```
+
+## Serial port forwarding
+```sh
+brew install ser2net
+brew install minicom
+```
+
+To configure ser2net, edit the example configuration in
+`/opt/homebrew/etc/ser2net/ser2net.yaml`
+
+To start ser2net now and restart at login:
+`brew services start ser2net`
+Or, if you don't want/need a background service you can just run:
+`/opt/homebrew/opt/ser2net/sbin/ser2net -p 12345`
+
+Look for your USB-serial adapter:
+```sh
+system_profiler SPUSBDataType
+```
+Connect to it via minicom for loopback test(RX&TX wires should be connected to each other)
+```sh
+sudo minicom --device /dev/tty.usbserial-5 --baudrate 115200
+```
+
+Create config file for ser2net utility with the found USB-serial adapter:
+```yaml
+connection: &con00
+  accepter: tcp,3333
+  connector: serialdev,/dev/tty.usbserial-5,115200n81,local
+```
+
+Launch utility with the given config file:
+```sh
+ser2net -c ser2net_config.yaml -n
+```
+
+In Docker container launch socat and minicom:
+```ssh
+socat pty,link=$HOME/dev/ttyV0,waitslave tcp:host.docker.internal:3333
+sudo minicom --device /home/headless/ttyV0 --baudrate 115200
+```
+Usefil links:
+https://techtinkering.com/2013/04/02/connecting-to-a-remote-serial-port-over-tcpip/
+https://www.baeldung.com/linux/make-virtual-serial-port
 
 ## Screenshots
 ### Sample design with ZYNQ Processing System IP

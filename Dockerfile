@@ -85,12 +85,6 @@ RUN pip3 install meson ninja
 
 ## Zephyr installation
 
-RUN mkdir -p /home/zephyr_setup
-WORKDIR /home/zephyr_setup
-RUN git clone https://github.com/zephyrproject-rtos/zephyr
-WORKDIR /home/zephyr_setup/zephyr
-RUN pip3 install --user -r scripts/requirements.txt
-
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get install -y  --no-install-recommends git cmake ninja-build gperf \
   ccache dfu-util device-tree-compiler wget \
@@ -104,6 +98,15 @@ RUN ./cmake-3.21.1-Linux-x86_64.sh --skip-license --prefix=/usr/local
 RUN hash -r
 
 
+RUN pip3 install --user -U west
+ENV PATH="${PATH}:${HOME}/.local/bin"
+
+RUN west init /usr/local/zephyrproject
+WORKDIR /usr/local/zephyrproject
+RUN west update
+RUN west zephyr-export
+RUN pip3 install --user -r /usr/local/zephyrproject/zephyr/scripts/requirements.txt
+
 WORKDIR /usr/local
 RUN wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.1/zephyr-sdk-0.16.1_linux-x86_64.tar.xz
 RUN wget -O - https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.1/sha256.sum | shasum --check --ignore-missing
@@ -116,11 +119,6 @@ ENV PATH="$PATH:/root/.local/bin"
 # create user "user" with password "pass"
 RUN useradd --create-home --shell /bin/bash --user-group --groups adm,sudo user
 RUN sh -c 'echo "user:pass" | chpasswd'
-# RUN cp -r /root/{.config,.gtkrc-2.0,.asoundrc} /home/user
-RUN chown -R user:user /home/user
-RUN mkdir -p /home/user/.config/pcmanfm/LXDE/
-RUN ln -sf /usr/local/share/doro-lxde-wallpapers/desktop-items-0.conf \
-/home/user/.config/pcmanfm/LXDE/
 
 # Set the locale, because Vivado crashes otherwise
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
@@ -128,5 +126,12 @@ RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
+
+# Without this, Vivado will crash when synthesizing
+ENV LD_PRELOAD /lib/x86_64-linux-gnu/libudev.so.1 /lib/x86_64-linux-gnu/libselinux.so.1 /lib/x86_64-linux-gnu/libz.so.1 /lib/x86_64-linux-gnu/libgdk-x11-2.0.so.0
+
+
+# Virtual serial port forwarding
+RUN apt-get install -y socat ser2net minicom
 
 WORKDIR /home/user

@@ -1,0 +1,12 @@
+# # Just a basic serial port  The con0 is the name of the connection,
+# # each connection must be given a unique name.  The accepter is the
+# # information about how to receive connections, in this case it is
+# # on TCP port 2002.  The connector is what the connection is hooked
+# # to when a connection comes in, in this case serial device /dev/ttyS0
+# # with the given serial parameters.  local means to ignore modem
+# # control lines, and is generally what you want.
+# # Tracing is added here, note the \p, see the ser2net.yaml.5 man page
+# # for details on special string handling.
+connection: &con00
+  accepter: tcp,3333
+  connector: serialdev,/dev/tty.usbserial-6,115200n81,local
