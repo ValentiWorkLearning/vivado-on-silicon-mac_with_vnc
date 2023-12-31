@@ -10,20 +10,23 @@ https://github.com/ichi4096/vivado-on-silicon-mac
 2) Build the container
 
 ```sh
-docker build -t me_vivado_apple .
+## Without Litex framework support
+docker build -t me_vivado_apple --target vivado_build_target .
+## With Litex framework support
+docker build -t me_vivado_apple --target with_litex .
 ```
 
 3) Launch the container with the mounted path to /home user
 ```sh
 docker run --rm --name vivado_container -p 45901:5901 -p 46901:6901  \
---mount type=bind,source="/Users/$USER/Downloads/vivado-on-silicon-mac-main",target="/home/user" \
+--mount type=bind,source="/Users/$USER/Documents/vivado-on-silicon-mac_with_vnc",target="/home/user" \
 docker.io/library/me_vivado_apple
 ```
 
 3.1) The container can be optionally launched with the mounted directory to external project sources
 ```sh
 docker run --rm --name vivado_container -p 45901:5901 -p 46901:6901  \
---mount type=bind,source="/Users/$USER/Downloads/vivado-on-silicon-mac-main",target="/home/user" \
+--mount type=bind,source="/Users/$USER/Documents/vivado-on-silicon-mac_with_vnc",target="/home/user" \
 --mount type=bind,source="/Users/$USER/Documents/Development/pluto_build",target="/home/user/pluto" \
 docker.io/library/me_vivado_apple
 ```
@@ -36,25 +39,25 @@ You'll see the running **CONTAINER ID**. Connect to the docker container:
 5) Extract installer to **/home/user/installer**
 
 ```sh
-/home/user/Xilinx_Unified_2023.1_0507_1903_Lin64.bin --target /home/user/installer --noexec
+/home/user/installers/FPGAs_AdaptiveSoCs_Unified_2023.2_1013_2256_Lin64.bin --target /home/user/installer_extracted --noexec
 ```
 
 6) If the custom configuration is required - generate config. By default the install_config.txt can be used.
 
 ```sh
-/home/user/installer/xsetup -b ConfigGen
+/home/user/installer_extracted/xsetup -b ConfigGen
 ```
 
 7) Generate your auth token. You'll be promted to enter you e-mail and password for AMD account.
 
 ```sh
-/home/user/installer/xsetup  -b AuthTokenGen
+/home/user/installer_extracted/xsetup  -b AuthTokenGen
 ```
 
 8) Start the installation
 
 ```sh
-/home/user/installer/xsetup --agree XilinxEULA,3rdPartyEULA -b Install -c /home/user/install_config.txt
+/home/user/installer_extracted/xsetup --agree XilinxEULA,3rdPartyEULA -b Install -c /home/user/install_config.txt
 ```
 
 
@@ -133,8 +136,16 @@ https://www.baeldung.com/linux/make-virtual-serial-port
 
 ## Screenshots
 ### Sample design with ZYNQ Processing System IP
-![telegram-cloud-photo-size-2-5339203163284164374-y](https://github.com/ValentiWorkLearning/vivado-on-silicon-mac_with_vnc/assets/25596072/87c143ea-fddd-4f9a-b6a7-7a1b44909331)
+![Vivado Block Design](./assets/vivado.png "Vivado 2023.2 Block Design")
 
-### Implemented design with the generated bitstream
-![telegram-cloud-photo-size-2-5339203163284164394-y](https://github.com/ValentiWorkLearning/vivado-on-silicon-mac_with_vnc/assets/25596072/002345ab-39d8-46da-af2b-52e82f00c319)
+### Vitis IDE
+![Vitis IDE Classic memtest](./assets/vitis_ide.png "Vitis IDE 2023.2 memtest app")
 
+### Vitis HLS
+![Vitis HLS Classic sample IP](./assets/vitis_hls.png "Vitis HLS 2023.2 sample app")
+
+## Bugfix for realloc failure:
+https://support.xilinx.com/s/article/000034450?language=en_US
+```sh
+LD_PRELOAD=/lib/x86_64-linux-gnu/libudev.so.1 /home/user/Xilinx/Vivado/2023.2/bin/vivado
+```

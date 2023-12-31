@@ -1,6 +1,6 @@
 # Container for running Vivado on M1/M2 macs
 # though it should work equally on Intel macs
-FROM --platform=linux/amd64 accetto/ubuntu-vnc-xfce-firefox-g3
+FROM --platform=linux/amd64 accetto/ubuntu-vnc-xfce-firefox-g3 as vivado_base
 
 USER 0
 RUN apt-get update && apt-get upgrade -y
@@ -59,6 +59,27 @@ RUN apt-get install -y \
     file
 
 
+RUN dpkg-reconfigure dash
+RUN dpkg --add-architecture i386
+
+RUN apt-get install -y gparted xinetd gawk gcc net-tools ncurses-dev openssl libssl-dev flex bison xterm autoconf libtool texinfo zlib1g-dev 
+
+RUN apt-get install -y  iproute2 make libncurses5-dev tftpd libselinux1 wget diffstat chrpath socat tar unzip gzip tofrodos lsb libftdi1 libftdi1-2
+
+RUN apt-get install -y lib32stdc++6  tree openssh-server
+
+RUN apt-get install -y  debianutils iputils-ping libegl1-mesa libsdl1.2-dev python3 cpio tftpd-hpa gnupg  haveged perl xvfb 
+
+# RUN apt-get install -y gcc-multilib build-essential automake screen putty pax g++ python3-pip xz-utils python3-git python3-jinja2 python3-pexpect 
+
+RUN apt-get install -y  liberror-perl mtd-utils xtrans-dev libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev
+
+RUN apt-get install -y  util-linux sysvinit-utils google-perftools patch diffutils ocl-icd-libopencl1 opencl-headers ocl-icd-opencl-dev 
+
+RUN apt-get install -y libncurses5 libncurses5-dev  libncursesw5-dev libtinfo5
+
+FROM vivado_base AS with_litex
+
 # Litex framework dependencies
 RUN mkdir -p /home/litex_setup
 WORKDIR /home/litex_setup
@@ -113,6 +134,27 @@ RUN wget -O - https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.
 RUN tar xvf zephyr-sdk-0.16.1_linux-x86_64.tar.xz
 WORKDIR /usr/local/zephyr-sdk-0.16.1
 RUN ./setup.sh -c
+
+ENV PATH="$PATH:/root/.local/bin"
+
+# create user "user" with password "pass"
+RUN useradd --create-home --shell /bin/bash --user-group --groups adm,sudo user
+RUN sh -c 'echo "user:pass" | chpasswd'
+
+# Set the locale, because Vivado crashes otherwise
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+# Virtual serial port forwarding
+RUN apt-get install -y socat ser2net minicom
+
+WORKDIR /home/user
+
+
+FROM vivado_base AS vivado_build_target
 
 ENV PATH="$PATH:/root/.local/bin"
 
